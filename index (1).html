@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mundos de Patas</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- Biblioteca externa via CDN: FullCalendar (calendário do diário) -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/locales-all.global.min.js"></script>
+<style>
+:root{--bg:#fff5f8;--card:#fff;--ink:#3b1527;--mute:#8a5b6f;--pri:#e8407c;--pri-d:#b81f58;--soft:#ffe0ec;--sun:#ffc857;--sky:#4aa3df;--line:#f6cbdb;--r:22px;--sh:0 8px 24px rgba(232,64,124,.14)}
+@media(prefers-color-scheme:dark){:root{--bg:#24101a;--card:#341826;--ink:#ffeaf2;--mute:#d9a6bc;--pri:#ff6b9d;--pri-d:#e8407c;--soft:#4a2036;--line:#5a2b44;--sh:none}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif;line-height:1.55}
+h1,h2,h3{font-family:'Baloo 2',Nunito,sans-serif;margin:0;line-height:1.1}
+.top{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:2px solid var(--line)}
+.top .in{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px 14px;flex-wrap:wrap}
+.logo{font:800 1.5rem 'Baloo 2',sans-serif;color:var(--pri);margin-right:auto;cursor:pointer;white-space:nowrap}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{font:600 1rem 'Baloo 2',sans-serif;border:0;padding:8px 16px;border-radius:99px;background:none;color:var(--mute);cursor:pointer}
+nav button:hover{background:var(--soft)}
+nav button[aria-selected=true]{background:var(--pri);color:#fff}
+main{max-width:1100px;margin:0 auto;padding:18px 14px 50px}
+section{display:none}section.on{display:block}
+.card{background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+label{display:flex;flex-direction:column;font-size:.85rem;font-weight:700;color:var(--mute);gap:3px;flex:1;min-width:130px}
+input,select{font:inherit;padding:10px 12px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink)}
+input:focus,select:focus,button:focus-visible,a:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.btn{font:600 1.05rem 'Baloo 2',sans-serif;border:0;border-radius:99px;padding:10px 22px;background:var(--pri);color:#fff;cursor:pointer;box-shadow:0 4px 0 var(--pri-d);transition:transform .1s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--pri-d)}
+.btn.sec{background:var(--card);color:var(--pri);box-shadow:none;border:2px solid var(--pri)}
+.btn.sm{padding:5px 14px;font-size:.9rem;box-shadow:none}
+.btn.sun{background:var(--sun);color:#4a3000;box-shadow:0 4px 0 #d9a21f}
+.sub{color:var(--mute);font-size:.92rem}
+/* início */
+.hero{border-radius:32px;background:linear-gradient(135deg,var(--pri),#ff8fb8);color:#fff;padding:36px 28px;display:grid;grid-template-columns:1.3fr 1fr;gap:20px;align-items:center;overflow:hidden;position:relative}
+.hero h1{font-size:clamp(2.2rem,6vw,3.6rem);font-weight:800}
+.hero p{font-size:1.15rem;max-width:34ch;margin:12px 0 20px}
+.hero .btn.sec{background:transparent;color:#fff;border-color:#fff}
+.hero .pets{font-size:clamp(5rem,16vw,9rem);text-align:center;animation:bob 3s ease-in-out infinite}
+.hero::before{content:'🐾';position:absolute;font-size:12rem;opacity:.1;right:30%;top:-30px;transform:rotate(-20deg)}
+@keyframes bob{50%{transform:translateY(-10px) rotate(3deg)}}
+@media(max-width:640px){.hero{grid-template-columns:1fr;text-align:center}.hero p{margin-inline:auto}}
+@media(prefers-reduced-motion:reduce){.hero .pets{animation:none}.btn{transition:none}}
+.tiles{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:20px}
+.tile{cursor:pointer;text-align:left;font:inherit;color:inherit;transition:transform .15s}
+.tile:hover{transform:translateY(-4px) rotate(-1deg)}
+.tile .em{font-size:2.6rem}
+.tile h3{font-size:1.4rem;color:var(--pri)}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.stats span{background:var(--soft);padding:6px 14px;border-radius:99px;font-weight:700}
+/* diário */
+.pet{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.avatar{width:70px;height:70px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:2.2rem;border:3px solid var(--pri)}
+.pet h3{font-size:1.5rem}
+.bar{width:100%;height:12px;border-radius:99px;background:var(--soft);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--pri);border-radius:99px}
+.bar.low i{background:#f59e0b}
+.chip{display:inline-block;padding:2px 12px;border-radius:99px;font-size:.82rem;font-weight:700;background:var(--sun);color:#4a3000}
+.msg{padding:16px;border-radius:16px;background:var(--card);border:2px dashed var(--line);text-align:center;margin:14px 0}
+.msg.err{border-color:var(--pri);color:var(--pri-d)}
+.spin{display:inline-block;width:18px;height:18px;border:3px solid var(--line);border-top-color:var(--pri);border-radius:50%;animation:g 1s linear infinite;vertical-align:-4px;margin-right:8px}
+@keyframes g{to{transform:rotate(360deg)}}
+/* calendário */
+#cal{background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:12px;margin-top:14px;--fc-border-color:var(--line);--fc-page-bg-color:transparent;--fc-button-bg-color:var(--pri);--fc-button-border-color:var(--pri);--fc-button-hover-bg-color:var(--pri-d);--fc-button-hover-border-color:var(--pri-d);--fc-button-active-bg-color:var(--pri-d);--fc-today-bg-color:var(--soft)}
+.fc{font-size:.9rem}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:.85rem}
+.legend b{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+/* enciclopédia */
+.enc-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.enc-head h2{font-size:2rem;color:var(--pri)}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.pill{font:600 1rem 'Baloo 2',sans-serif;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:6px 16px;cursor:pointer}
+.pill[aria-pressed=true]{background:var(--pri);border-color:var(--pri);color:#fff}
+.breed{padding:0;overflow:hidden;cursor:pointer;transition:transform .15s;display:flex;flex-direction:column}
+.breed:hover{transform:translateY(-5px)}
+.photo{position:relative;height:190px;background:var(--soft);display:grid;place-items:center;font-size:4rem}
+.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s}
+.photo img.ok{opacity:1}
+.fav{position:absolute;top:10px;right:10px;z-index:2;width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.92);font-size:1.3rem;cursor:pointer;color:var(--pri)}
+.tag{position:absolute;left:10px;bottom:10px;z-index:2;background:var(--pri);color:#fff;border-radius:99px;padding:2px 12px;font-size:.8rem;font-weight:700}
+.breed .body{padding:14px;display:flex;flex-direction:column;gap:4px}
+.breed h3{font-size:1.3rem}
+dialog{border:0;border-radius:28px;padding:0;max-width:640px;width:calc(100% - 24px);background:var(--card);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(90,20,50,.55)}
+.dlg{padding:20px;display:flex;flex-direction:column;gap:10px}
+.gal{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gal .photo{height:140px;border-radius:16px;overflow:hidden}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.facts div{background:var(--soft);border-radius:14px;padding:8px 12px}
+.facts b{display:block;font-size:.78rem;color:var(--mute)}
+footer{text-align:center;color:var(--mute);font-size:.82rem;padding:24px 12px;background:var(--soft)}
+
+/* ===== animações e novos recursos ===== */
+main{position:relative;z-index:1}
+.bgp{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.bgp span{position:absolute;bottom:-60px;opacity:.09;animation:drift var(--t) linear infinite;animation-delay:var(--dl)}
+@keyframes drift{to{transform:translateY(-115vh) rotate(40deg)}}
+section.on{animation:fade .45s ease}
+@keyframes fade{from{opacity:0;transform:translateY(14px)}}
+.grid>.card{animation:rise .55s cubic-bezier(.2,.9,.3,1.2) both}
+.grid>.card:nth-child(2){animation-delay:.07s}.grid>.card:nth-child(3){animation-delay:.14s}.grid>.card:nth-child(4){animation-delay:.21s}.grid>.card:nth-child(5){animation-delay:.28s}.grid>.card:nth-child(n+6){animation-delay:.35s}
+.still>.card{animation:none}
+@keyframes rise{from{opacity:0;transform:translateY(28px) scale(.94)}}
+.logo:hover{animation:wig .5s}
+@keyframes wig{25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
+.tile:hover .em{animation:wig .6s}
+.stats span{animation:pop .5s cubic-bezier(.2,.9,.3,1.6) both}
+.stats span:nth-child(2){animation-delay:.1s}.stats span:nth-child(3){animation-delay:.2s}
+@keyframes pop{from{transform:scale(0)}}
+.hero h1,.hero p,.hero .row{animation:rise .7s both}
+.hero p{animation-delay:.12s}.hero .row{animation-delay:.24s}
+.hero .pets{display:flex;justify-content:center;gap:6px}
+.hero .pets span:last-child{animation:bob 3s ease-in-out infinite .6s}
+.photo{background:linear-gradient(110deg,var(--soft) 30%,var(--line) 50%,var(--soft) 70%);background-size:200% 100%;animation:shine 1.6s linear infinite}
+@keyframes shine{to{background-position:-200% 0}}
+.breed:hover .photo img.ok{transform:scale(1.08)}
+.photo img{transition:opacity .4s,transform .5s}
+.cf{position:fixed;top:-30px;z-index:99;pointer-events:none;animation:fall 2.2s ease-in forwards}
+@keyframes fall{to{transform:translate(var(--dx),112vh) rotate(540deg)}}
+.chk{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.chkb{font:600 .85rem Nunito,sans-serif;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:4px 12px;cursor:pointer;transition:all .2s}
+.chkb.on{background:var(--pri);border-color:var(--pri);color:#fff;transform:scale(1.06)}
+.peso{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.qfoto{height:min(60vw,300px);border-radius:20px;overflow:hidden;margin:12px 0}
+.qops{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.qops .pill{padding:10px;text-align:center;border-radius:16px}
+.pill.certo{background:#22a06b;border-color:#22a06b;color:#fff;animation:pop .4s}
+.pill.errado{background:#d6336c;border-color:#d6336c;color:#fff;animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.big{font:800 3rem 'Baloo 2',sans-serif;color:var(--pri)}
+.fun{margin-top:18px}
+.tip{min-height:70px;font-size:1.05rem}
+.flip{animation:flip .5s}
+@keyframes flip{from{transform:rotateX(90deg);opacity:0}}
+.nome{display:inline-block;background:var(--soft);border-radius:99px;padding:4px 14px;margin:3px;font-weight:700;animation:pop .35s both}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ===== v4: paleta rosa + cores de apoio ===== */
+:root{--lil:#8b5cf6;--mint:#1fb894;--peach:#ff8a5c;--sky:#3b9be0;--b1:#ffdcec;--b2:#ebe0ff;--b3:#d6f6ec}
+@media(prefers-color-scheme:dark){:root{--lil:#a78bfa;--mint:#3ddbb4;--peach:#ff9d78;--sky:#63b3f0;--b1:#3d1430;--b2:#271a45;--b3:#12342f}}
+body{background:radial-gradient(circle at 0 0,var(--b1),transparent 45%),radial-gradient(circle at 100% 12%,var(--b2),transparent 40%),radial-gradient(circle at 20% 100%,var(--b3),transparent 40%),var(--bg);background-attachment:fixed}
+.top{background:color-mix(in srgb,var(--card) 88%,transparent);backdrop-filter:blur(10px);border-bottom:0;box-shadow:0 3px 0 transparent;border-image:linear-gradient(90deg,var(--pri),var(--lil),var(--sky),var(--mint),var(--sun),var(--peach)) 1;border-bottom:4px solid}
+nav button[data-tab=inicio]{--c:var(--pri)}nav button[data-tab=diario]{--c:var(--peach)}nav button[data-tab=agenda]{--c:var(--sky)}nav button[data-tab=enciclo]{--c:var(--lil)}nav button[data-tab=diversao]{--c:var(--mint)}
+nav button:hover{background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--ink)}
+nav button[aria-selected=true]{background:var(--c);color:#fff;box-shadow:0 3px 0 color-mix(in srgb,var(--c) 70%,black)}
+section#inicio{--c:var(--pri)}section#diario{--c:var(--peach)}section#agenda{--c:var(--sky)}section#enciclo{--c:var(--lil)}section#diversao{--c:var(--mint)}
+.enc-head h2{color:var(--c,var(--pri))}
+.btn{background:var(--c,var(--pri));box-shadow:0 4px 0 color-mix(in srgb,var(--c,var(--pri)) 70%,black)}
+.btn.sec{color:var(--c,var(--pri));border-color:var(--c,var(--pri));background:var(--card)}
+.hero{background:linear-gradient(120deg,#e8407c,#b05cf0 55%,#ff9f7a)}
+.hero::after{content:'';position:absolute;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,.13);left:-70px;bottom:-100px}
+.hero .btn.sec{background:transparent;color:#fff;border-color:#fff}
+.tile:nth-child(1){--c:var(--peach)}.tile:nth-child(2){--c:var(--sky)}.tile:nth-child(3){--c:var(--lil)}.tile:nth-child(4){--c:var(--mint)}
+.tile{border-top:6px solid var(--c);border-color:var(--line);border-top-color:var(--c)}
+.tile h3{color:var(--c)}
+.tile .em{width:66px;height:66px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 18%,transparent);margin-bottom:6px}
+.stats span:nth-child(1){background:color-mix(in srgb,var(--peach) 25%,var(--card))}.stats span:nth-child(2){background:color-mix(in srgb,var(--sky) 25%,var(--card))}.stats span:nth-child(3){background:color-mix(in srgb,var(--lil) 25%,var(--card))}
+.pet:nth-child(5n+1){--c:var(--pri)}.pet:nth-child(5n+2){--c:var(--lil)}.pet:nth-child(5n+3){--c:var(--sky)}.pet:nth-child(5n+4){--c:var(--mint)}.pet:nth-child(5n+5){--c:var(--peach)}
+.pet{border-top:8px solid var(--c);border-color:var(--line);border-top-color:var(--c)}
+.pet .avatar{border-color:var(--c);background:color-mix(in srgb,var(--c) 18%,var(--card))}
+.pet .bar i{background:var(--c)}.pet .bar.low i{background:var(--sun)}
+.chkb.on{background:var(--c);border-color:var(--c)}
+.breed:hover{border-color:var(--c,var(--lil))}
+.tag[data-p=Pequeno]{background:var(--mint)}.tag[data-p=Médio]{background:var(--peach)}.tag[data-p=Grande]{background:var(--lil)}
+#fEsp .pill[data-v=cao][aria-pressed=true]{background:var(--pri);border-color:var(--pri)}
+#fEsp .pill[data-v=gato][aria-pressed=true]{background:var(--lil);border-color:var(--lil)}
+#fEsp .pill[data-v=fav][aria-pressed=true]{background:var(--sun);border-color:var(--sun);color:#4a3000}
+.fun .card:nth-child(1){--c:var(--peach)}.fun .card:nth-child(2){--c:var(--lil)}.fun .card:nth-child(3){--c:var(--sky)}
+.fun .card{border-top:6px solid var(--c);border-color:var(--line);border-top-color:var(--c)}
+.fun h3{color:var(--c)}.fun .big{color:var(--c)}
+#quiz{border-top:6px solid var(--mint);border-color:var(--line);border-top-color:var(--mint)}
+.pill.certo{background:var(--mint);border-color:var(--mint)}
+.facts div:nth-child(1){background:color-mix(in srgb,var(--pri) 18%,var(--card))}.facts div:nth-child(2){background:color-mix(in srgb,var(--lil) 18%,var(--card))}.facts div:nth-child(3){background:color-mix(in srgb,var(--mint) 18%,var(--card))}.facts div:nth-child(4){background:color-mix(in srgb,var(--sun) 28%,var(--card))}
+dialog h2{color:var(--lil)}
+#cal{--fc-today-bg-color:color-mix(in srgb,var(--sun) 25%,transparent);border-top:6px solid var(--sky);border-color:var(--line);border-top-color:var(--sky);--fc-button-bg-color:var(--sky);--fc-button-border-color:var(--sky);--fc-button-hover-bg-color:#2a7fbf;--fc-button-hover-border-color:#2a7fbf;--fc-button-active-bg-color:#2a7fbf}
+.pdd{display:grid;grid-template-columns:210px 1fr;gap:18px;align-items:center;margin-top:20px;--c:var(--lil);border-top:6px solid var(--lil);border-color:var(--line);border-top-color:var(--lil)}
+.pdd .photo{height:170px;border-radius:18px;overflow:hidden}
+.pdd .chip{background:var(--lil);color:#fff}
+@media(max-width:560px){.pdd{grid-template-columns:1fr}}
+.topo{position:fixed;right:16px;bottom:16px;z-index:30;width:48px;height:48px;border-radius:50%;border:0;background:var(--lil);color:#fff;font-size:1.4rem;cursor:pointer;box-shadow:0 5px 0 #6a3fd0;opacity:0;pointer-events:none;transform:translateY(20px);transition:all .3s}
+.topo.on{opacity:1;pointer-events:auto;transform:none}
+footer{background:linear-gradient(90deg,var(--b1),var(--b2),var(--b3));border-radius:32px 32px 0 0;color:var(--mute);margin-top:20px}
+</style>
+</head>
+<body>
+<div class="top"><div class="in">
+  <div class="logo" onclick="ir('inicio')">🐾 Mundos de Patas</div>
+  <nav role="tablist">
+    <button role="tab" aria-selected="true" data-tab="inicio">Início</button>
+    <button role="tab" aria-selected="false" data-tab="diario">Meus pets</button>
+    <button role="tab" aria-selected="false" data-tab="agenda">Agenda</button>
+    <button role="tab" aria-selected="false" data-tab="enciclo">Raças</button>
+    <button role="tab" aria-selected="false" data-tab="diversao">Diversão</button>
+  </nav>
+</div></div>
+
+<main>
+<!-- ============ INÍCIO ============ -->
+<section id="inicio" class="on">
+  <div class="hero">
+    <div>
+      <h1>Todo o mundo de quem tem 4 patas</h1>
+      <p>Cuide da vacina, do banho e da ração do seu pet e descubra tudo sobre cães e gatos.</p>
+      <div class="row"><button class="btn sun" onclick="ir('diario')">Cadastrar meu pet</button><button class="btn sec" onclick="ir('enciclo')">Ver raças</button></div>
+    </div>
+    <div class="pets" aria-hidden="true"><span>🐶</span><span>🐱</span></div>
+  </div>
+  <div class="tiles">
+    <button class="card tile" onclick="ir('diario')"><div class="em">📒</div><h3>Diário dos pets</h3><span class="sub">Cadastre cada pet e saiba quantos dias a ração vai durar.</span></button>
+    <button class="card tile" onclick="ir('agenda')"><div class="em">📅</div><h3>Agenda de cuidados</h3><span class="sub">Marque vacinas, banhos e compras de ração no calendário.</span></button>
+    <button class="card tile" onclick="ir('enciclo')"><div class="em">📖</div><h3>Enciclopédia de raças</h3><span class="sub">Fotos, temperamento, porte e vida média de cães e gatos.</span></button>
+    <button class="card tile" onclick="ir('diversao')"><div class="em">🎯</div><h3>Jogos e curiosidades</h3><span class="sub">Quiz de raças, idade humana do pet, nomes e dicas.</span></button>
+  </div>
+  <div class="card pdd">
+    <div class="photo" id="pddFoto"><span>🐾</span></div>
+    <div><span class="chip">⭐ Raça do dia</span><h3 id="pddNome" style="font-size:1.9rem;margin:8px 0 4px"></h3><p id="pddDesc" class="sub" style="margin:0 0 10px"></p><button class="btn sm" id="pddBtn">Conhecer essa raça</button></div>
+  </div>
+  <div class="stats" id="stats"></div>
+</section>
+
+<!-- ============ MEUS PETS ============ -->
+<section id="diario">
+  <div class="enc-head"><div><h2 style="font-size:2rem">Meus pets</h2><span class="sub">Cadastre seus bichinhos, marque a rotina do dia e acompanhe peso e ração.</span></div></div>
+  <form id="petForm" class="card row">
+    <label>Nome do pet<input id="pNome" required maxlength="30" placeholder="Ex.: Thor"></label>
+    <label>Espécie<select id="pEsp"><option value="🐶">Cão</option><option value="🐱">Gato</option></select></label>
+    <label>Raça (opcional)<input id="pRaca" maxlength="40" placeholder="Ex.: Vira-lata"></label>
+    <label>Ração em estoque (kg)<input id="pKg" type="number" min="0" step="0.1" value="10"></label>
+    <label>Consumo por dia (g)<input id="pG" type="number" min="1" step="10" value="250"></label>
+    <button class="btn">Adicionar pet</button>
+  </form>
+  <div id="pets" class="grid" style="margin-top:18px"></div>
+</section>
+
+<!-- ============ AGENDA (FullCalendar) ============ -->
+<section id="agenda">
+  <div class="enc-head"><div><h2 style="font-size:2rem">Agenda de cuidados</h2><span class="sub">Vacinas, banhos e compras de ração em um só calendário.</span></div></div>
+  <form id="evForm" class="card row">
+    <label>Pet<select id="ePet"></select></label>
+    <label>Tipo<select id="eTipo"><option value="vacina">💉 Vacina</option><option value="banho">🛁 Banho</option><option value="racao">🥣 Compra de ração</option></select></label>
+    <label>Data<input id="eData" type="date" required></label>
+    <button class="btn">Agendar</button>
+  </form>
+  <p class="sub">Dica: clique em um dia do calendário para preencher a data. Clique em um evento para removê-lo.</p>
+  <div id="cal"></div>
+  <div class="legend"><span><b style="background:#e8407c"></b>Vacina</span><span><b style="background:#4aa3df"></b>Banho</span><span><b style="background:#ffc857"></b>Ração</span></div>
+</section>
+
+<!-- ============ ENCICLOPÉDIA ============ -->
+<section id="enciclo">
+  <div class="enc-head">
+    <div><h2>Enciclopédia de raças</h2><span class="sub">Clique em uma raça para ver mais fotos e detalhes.</span></div>
+    <button class="btn sun" id="btnSorteio">🎲 Sortear uma raça</button>
+  </div>
+  <div class="pills" id="fEsp">
+    <button class="pill" data-v="cao" aria-pressed="true">🐶 Cães</button>
+    <button class="pill" data-v="gato" aria-pressed="false">🐱 Gatos</button>
+    <button class="pill" data-v="fav" aria-pressed="false">★ Favoritas</button>
+  </div>
+  <div class="row">
+    <label>Buscar raça<input id="busca" type="search" placeholder="Ex.: Labrador, Siamês..."></label>
+    <label>Porte<select id="fPorte"><option value="">Todos</option><option>Pequeno</option><option>Médio</option><option>Grande</option></select></label>
+  </div>
+  <div id="encMsg"></div>
+  <div id="breeds" class="grid" style="margin-top:16px"></div>
+</section>
+
+<!-- ============ DIVERSÃO ============ -->
+<section id="diversao">
+  <div class="enc-head"><div><h2 style="font-size:2rem;color:var(--pri)">Diversão e curiosidades</h2><span class="sub">Jogue, descubra e aprenda mais sobre os bichinhos.</span></div></div>
+  <div class="card" id="quiz">
+    <h3 style="font-size:1.6rem">🎯 Que raça é essa?</h3>
+    <div id="qInfo" class="sub">5 fotos reais, 4 opções cada. Quantas você acerta? <span id="qBest"></span></div>
+    <div class="photo qfoto" id="qFoto"><span>🐾</span></div>
+    <div id="qOps" class="qops"></div>
+    <p><button class="btn" id="qStart">Começar o quiz</button></p>
+  </div>
+  <div class="grid fun">
+    <div class="card"><h3>🎂 Idade humana do pet</h3>
+      <div class="row" style="margin-top:8px"><label>Espécie<select id="iEsp"><option value="cao">Cão</option><option value="gato">Gato</option></select></label>
+      <label>Porte<select id="iPorte"><option value="4">Pequeno</option><option value="5" selected>Médio</option><option value="6">Grande</option></select></label>
+      <label>Idade (anos)<input id="iAnos" type="number" min="0" max="30" step="0.5" value="3"></label></div>
+      <div class="big" id="iRes">0</div><span class="sub">anos em idade humana (estimativa)</span></div>
+    <div class="card"><h3>✨ Gerador de nomes</h3>
+      <div class="row" style="margin-top:8px"><label>Estilo<select id="nTema"><option value="fofo">Fofos</option><option value="forte">Fortes</option><option value="comida">Comidinhas</option><option value="mito">Mitologia</option></select></label><button class="btn sm" id="nBtn">Sortear</button></div>
+      <p id="nRes" style="margin:12px 0 0"><span class="sub">Clique em Sortear.</span></p></div>
+    <div class="card"><h3>💡 Dica do dia</h3>
+      <p class="tip" id="dica"></p><button class="btn sm sec" id="dBtn">Outra dica</button></div>
+  </div>
+</section>
+</main>
+<footer>Fotos: Dog CEO API e TheCatAPI · Calendário: FullCalendar · Seus dados ficam apenas neste navegador. O app não substitui o veterinário.</footer>
+
+<button class="topo" id="topo" aria-label="Voltar ao topo">↑</button>
+<dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
+
+<script>
+/* ===== Utilidades ===== */
+const $ = s => document.querySelector(s);
+// Evita injetar HTML vindo de digitação ou de APIs
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const hoje = () => new Date().toISOString().slice(0, 10);
+
+/* ===== Salvamento de dados (localStorage) ===== */
+// Guarda pets, eventos e raças favoritas para os dados não sumirem ao atualizar a página
+let db = { pets: [], eventos: [], favs: [] };
+try { db = { ...db, ...JSON.parse(localStorage.getItem('mundosdepatas') || '{}') }; } catch (e) { console.warn('Não foi possível ler os dados salvos', e); }
+const salvar = () => { try { localStorage.setItem('mundosdepatas', JSON.stringify(db)); } catch (e) { alert('Não foi possível salvar neste navegador.'); } };
+
+/* ===== Abas ===== */
+function ir(id) {
+  document.querySelectorAll('nav button').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === id));
+  document.querySelectorAll('section').forEach(s => s.classList.toggle('on', s.id === id));
+  if (id === 'agenda') calendario.render();
+  if (id === 'enciclo') desenharRacas();
+  $('#pets').classList.remove('still'); scrollTo({ top: 0 });
+}
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => ir(b.dataset.tab));
+
+/* ===== MEUS PETS: cadastro e controle de ração ===== */
+const rotulo = t => ({ vacina: '💉 Vacina', banho: '🛁 Banho', racao: '🥣 Ração' }[t]);
+function desenharPets() {
+  const box = $('#pets');
+  if (!db.pets.length) box.innerHTML = '<div class="msg" style="grid-column:1/-1">Nenhum pet ainda. Preencha o formulário acima para cadastrar o primeiro. 🐾</div>';
+  else box.innerHTML = db.pets.map(p => {
+    const dias = Math.floor(p.kg * 1000 / p.g);               // quantos dias a ração dura
+    const fim = new Date(Date.now() + dias * 864e5).toLocaleDateString('pt-BR');
+    const prox = db.eventos.filter(e => e.pet === p.id && e.data >= hoje()).sort((a, b) => a.data.localeCompare(b.data))[0];
+    return `<article class="card pet">
+      <div class="avatar">${p.esp}</div>
+      <h3>${esc(p.nome)}</h3>
+      <span class="sub">${esc(p.raca || 'Raça não informada')}</span>
+      <div class="bar ${dias <= 7 ? 'low' : ''}" aria-hidden="true"><i style="width:${Math.min(100, dias / 30 * 100)}%"></i></div>
+      <span>${p.kg.toFixed(1)} kg · ${p.g} g/dia → ${dias <= 0 ? '<b>acabou!</b>' : `dura <b>${dias} dias</b> (até ${fim})`}</span>
+      ${dias <= 7 ? '<span class="chip">Hora de comprar ração</span>' : ''}
+      <span class="sub">${prox ? 'Próximo: ' + rotulo(prox.tipo) + ' em ' + prox.data.split('-').reverse().join('/') : 'Nada agendado'}</span>
+      ${extrasPet(p)}
+      <div class="row"><button class="btn sm sec" onclick="reabastecer('${p.id}')">+ Ração</button><button class="btn sm sec" onclick="removerPet('${p.id}')">Remover</button></div></article>`;
+  }).join('');
+  $('#ePet').innerHTML = db.pets.map(p => `<option value="${p.id}">${p.esp} ${esc(p.nome)}</option>`).join('') || '<option value="">Cadastre um pet</option>';
+  $('#stats').innerHTML = `<span>🐾 ${db.pets.length} pet(s)</span><span>📅 ${db.eventos.filter(e => e.data >= hoje()).length} cuidado(s) agendado(s)</span><span>★ ${db.favs.length} raça(s) favorita(s)</span>`;
+}
+$('#petForm').onsubmit = e => {
+  e.preventDefault();
+  db.pets.push({ id: uid(), nome: $('#pNome').value.trim(), esp: $('#pEsp').value, raca: $('#pRaca').value.trim(), kg: +$('#pKg').value || 0, g: +$('#pG').value || 250 });
+  salvar(); e.target.reset(); desenharPets();
+};
+window.reabastecer = id => {
+  const kg = parseFloat((prompt('Quantos kg de ração você comprou?') || '').replace(',', '.'));
+  if (!(kg > 0)) return;
+  db.pets.find(x => x.id === id).kg += kg; salvar(); desenharPets();
+};
+window.removerPet = id => {
+  if (!confirm('Remover este pet e os eventos dele?')) return;
+  db.pets = db.pets.filter(p => p.id !== id); db.eventos = db.eventos.filter(e => e.pet !== id);
+  salvar(); desenharPets(); atualizarCal();
+};
+
+/* ===== AGENDA: FullCalendar ===== */
+const cor = t => ({ vacina: '#e8407c', banho: '#4aa3df', racao: '#ffc857' }[t]);
+const calendario = new FullCalendar.Calendar($('#cal'), {
+  locale: 'pt-br', initialView: 'dayGridMonth', height: 'auto',
+  headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
+  dateClick: i => { $('#eData').value = i.dateStr; },
+  eventClick: i => { if (confirm('Remover "' + i.event.title + '"?')) { db.eventos = db.eventos.filter(e => e.id !== i.event.id); salvar(); atualizarCal(); desenharPets(); } }
+});
+function atualizarCal() {
+  calendario.removeAllEvents();
+  db.eventos.forEach(e => {
+    const p = db.pets.find(x => x.id === e.pet); if (!p) return;
+    calendario.addEvent({ id: e.id, title: rotulo(e.tipo) + ' · ' + p.nome, start: e.data, allDay: true, color: cor(e.tipo), textColor: e.tipo === 'racao' ? '#4a3000' : '#fff' });
+  });
+}
+$('#evForm').onsubmit = e => {
+  e.preventDefault();
+  if (!$('#ePet').value) return alert('Cadastre um pet primeiro na aba Meus pets.');
+  db.eventos.push({ id: uid(), pet: $('#ePet').value, tipo: $('#eTipo').value, data: $('#eData').value });
+  salvar(); atualizarCal(); desenharPets();
+};
+
+/* ===== ENCICLOPÉDIA =====
+   Os textos das raças ficam no próprio arquivo (funciona mesmo sem internet).
+   As FOTOS vêm das APIs: Dog CEO API (cães) e TheCatAPI (gatos). */
+const R = (id, nome, origem, porte, peso, vida, temp, desc, img) => ({ id, nome, origem, porte, peso, vida, temp, desc, img });
+const RACAS = {
+  cao: [
+    R('lab', 'Labrador Retriever', 'Canadá', 'Grande', '25–36 kg', '10–12 anos', 'Amigável, ativo, dócil', 'Um dos cães mais populares do mundo. Adora água e é muito usado como cão-guia.', 'labrador'),
+    R('gold', 'Golden Retriever', 'Escócia', 'Grande', '25–34 kg', '10–12 anos', 'Carinhoso, inteligente, paciente', 'Ótimo com crianças e fácil de treinar. Precisa de escovação frequente.', 'retriever/golden'),
+    R('gsd', 'Pastor Alemão', 'Alemanha', 'Grande', '22–40 kg', '9–13 anos', 'Leal, corajoso, atento', 'Muito inteligente, trabalha em polícia e resgate. Precisa de exercício todo dia.', 'germanshepherd'),
+    R('fbull', 'Bulldog Francês', 'França', 'Pequeno', '8–14 kg', '10–12 anos', 'Brincalhão, afetuoso, sociável', 'Ótimo para apartamento. Tem o focinho curto e sofre com calor forte.', 'bulldog/french'),
+    R('poodle', 'Poodle', 'Alemanha e França', 'Médio', '20–32 kg (padrão)', '12–15 anos', 'Esperto, ativo, elegante', 'Um dos cães mais inteligentes. Quase não solta pelo, mas precisa de tosa.', 'poodle/standard'),
+    R('beagle', 'Beagle', 'Inglaterra', 'Médio', '9–11 kg', '12–15 anos', 'Curioso, alegre, farejador', 'Segue o cheiro de tudo. Gosta de companhia e de passeios longos.', 'beagle'),
+    R('pug', 'Pug', 'China', 'Pequeno', '6–8 kg', '12–15 anos', 'Calmo, divertido, grudado no dono', 'Pequeno e carismático. Precisa de atenção com a respiração e o peso.', 'pug'),
+    R('rott', 'Rottweiler', 'Alemanha', 'Grande', '35–60 kg', '8–10 anos', 'Protetor, calmo, confiante', 'Forte e leal. Com socialização e treino desde filhote, é um cão equilibrado.', 'rottweiler'),
+    R('husky', 'Husky Siberiano', 'Sibéria', 'Médio', '16–27 kg', '12–14 anos', 'Energético, independente, amigável', 'Feito para o frio e para correr longas distâncias. Pode ser bem teimoso.', 'husky'),
+    R('shih', 'Shih Tzu', 'Tibete', 'Pequeno', '4–7 kg', '10–16 anos', 'Dócil, companheiro, confiante', 'Pelagem longa e sedosa que pede escovação diária. Bom cão de colo.', 'shihtzu'),
+    R('dach', 'Dachshund (Salsicha)', 'Alemanha', 'Pequeno', '7–14 kg', '12–16 anos', 'Corajoso, curioso, teimoso', 'Corpo comprido: evite escadas e pulos para proteger a coluna.', 'dachshund'),
+    R('chi', 'Chihuahua', 'México', 'Pequeno', '1–3 kg', '14–16 anos', 'Esperto, vivaz, corajoso', 'A menor raça do mundo e uma das que vivem mais.', 'chihuahua'),
+    R('boxer', 'Boxer', 'Alemanha', 'Grande', '25–32 kg', '10–12 anos', 'Brincalhão, energético, leal', 'Fica filhote por muito tempo e precisa gastar energia todos os dias.', 'boxer'),
+    R('akita', 'Akita', 'Japão', 'Grande', '32–59 kg', '10–13 anos', 'Leal, reservado, corajoso', 'Símbolo de lealdade no Japão. Precisa de dono experiente.', 'akita'),
+    R('border', 'Border Collie', 'Reino Unido', 'Médio', '14–20 kg', '12–15 anos', 'Muito inteligente, ágil, dedicado', 'Considerado o cão mais inteligente. Precisa de tarefas e atividades.', 'collie/border'),
+    R('pom', 'Spitz Alemão (Lulu)', 'Alemanha', 'Pequeno', '2–3 kg', '12–16 anos', 'Alegre, atento, esperto', 'Bolinha de pelo muito popular no Brasil. Late bastante para avisar tudo.', 'pomeranian'),
+    R('srd', 'Vira-lata (SRD)', 'Brasil', 'Médio', 'Varia', '12–16 anos', 'Esperto, adaptável, leal', 'Sem raça definida e cheio de personalidade. Adotar um SRD salva uma vida!', null)
+  ],
+  gato: [
+    R('siam', 'Siamês', 'Tailândia', 'Pequeno', '3–5 kg', '12–15 anos', 'Falante, carinhoso, curioso', 'Olhos azuis e pelagem clara com pontas escuras. Mia bastante e adora atenção.', 'siam'),
+    R('pers', 'Persa', 'Irã', 'Médio', '3–5,5 kg', '12–17 anos', 'Calmo, doce, tranquilo', 'Pelo longo que precisa de escovação diária. Prefere ambientes sossegados.', 'pers'),
+    R('mcoo', 'Maine Coon', 'Estados Unidos', 'Grande', '4–8 kg', '12–15 anos', 'Gentil, sociável, brincalhão', 'Um dos maiores gatos domésticos, conhecido como "gigante gentil".', 'mcoo'),
+    R('beng', 'Bengal', 'Estados Unidos', 'Médio', '4–7 kg', '12–16 anos', 'Ativo, curioso, ágil', 'Pelagem manchada que lembra a de um leopardo. Gosta de subir e brincar.', 'beng'),
+    R('ragd', 'Ragdoll', 'Estados Unidos', 'Grande', '4–9 kg', '12–17 anos', 'Dócil, calmo, afetuoso', 'Fica molinho no colo, como uma boneca de pano. Ótimo com crianças.', 'ragd'),
+    R('sphy', 'Sphynx', 'Canadá', 'Médio', '3–5 kg', '12–14 anos', 'Extrovertido, carente, brincalhão', 'Quase sem pelos. Precisa de banho e proteção contra frio e sol.', 'sphy'),
+    R('abys', 'Abissínio', 'Etiópia', 'Médio', '3–5 kg', '12–15 anos', 'Energético, curioso, inteligente', 'Elegante, de pelagem avermelhada, adora explorar lugares altos.', 'abys'),
+    R('bsho', 'British Shorthair', 'Reino Unido', 'Médio', '4–8 kg', '12–17 anos', 'Calmo, independente, leal', 'Rosto redondo e corpo robusto. Costuma ser tranquilo e fácil de conviver.', 'bsho'),
+    R('sibe', 'Siberiano', 'Rússia', 'Grande', '4–9 kg', '11–15 anos', 'Afetuoso, ágil, brincalhão', 'Pelagem densa para o frio. É considerado mais amigo de pessoas alérgicas.', 'sibe'),
+    R('norw', 'Norueguês da Floresta', 'Noruega', 'Grande', '4–9 kg', '12–16 anos', 'Independente, gentil, escalador', 'Gato grande de pelos longos, ótimo caçador e escalador de árvores.', 'norw'),
+    R('birm', 'Sagrado da Birmânia', 'Mianmar', 'Médio', '3–6 kg', '12–16 anos', 'Gentil, tranquilo, sociável', 'Pelagem sedosa e patinhas brancas, como se usasse luvas.', 'birm'),
+    R('srdg', 'Vira-lata (SRD)', 'Mundo todo', 'Médio', '3–6 kg', '12–18 anos', 'Independente, esperto, carinhoso', 'Os gatos sem raça definida são os mais comuns e muitos esperam por um lar.', null)
+  ]
+};
+const enc = { esp: 'cao' };
+const fotos = {};   // cache das fotos para não chamar a API duas vezes
+
+// Chama a API e trata erros de rede ou resposta inválida
+async function buscarJSON(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('Servidor respondeu ' + r.status);
+  return r.json();
+}
+// Busca n fotos da raça: Dog CEO API para cães, TheCatAPI para gatos
+async function buscarFotos(esp, r, n) {
+  if (esp === 'cao') {
+    const url = r.img ? `https://dog.ceo/api/breed/${r.img}/images/random/${n}` : `https://dog.ceo/api/breeds/image/random/${n}`;
+    return (await buscarJSON(url)).message;
+  }
+  const url = `https://api.thecatapi.com/v1/images/search?limit=${n}` + (r.img ? `&breed_ids=${r.img}` : '');
+  return (await buscarJSON(url)).map(x => x.url);
+}
+// Carrega a foto de capa do cartão; se falhar, fica o emoji de fundo
+async function carregarCapa(esp, r, el) {
+  const k = esp + r.id;
+  try {
+    if (!fotos[k]) fotos[k] = (await buscarFotos(esp, r, 1))[0];
+    const img = new Image(); img.alt = 'Foto de ' + r.nome; img.src = fotos[k];
+    img.onload = () => { el.appendChild(img); requestAnimationFrame(() => img.classList.add('ok')); };
+  } catch (e) { console.warn('Sem foto para', r.nome, e); }
+}
+const dono = esp => esp === 'cao' ? '🐶' : '🐱';
+const todas = () => [...RACAS.cao.map(r => ({ ...r, esp: 'cao' })), ...RACAS.gato.map(r => ({ ...r, esp: 'gato' }))];
+
+function desenharRacas() {
+  const q = $('#busca').value.trim().toLowerCase(), porte = $('#fPorte').value;
+  const base = enc.esp === 'fav' ? todas().filter(r => db.favs.includes(r.esp + r.id)) : RACAS[enc.esp].map(r => ({ ...r, esp: enc.esp }));
+  const lista = base.filter(r => r.nome.toLowerCase().includes(q) && (!porte || r.porte === porte));
+  $('#encMsg').innerHTML = lista.length ? '' : `<div class="msg">${enc.esp === 'fav' && !db.favs.length ? 'Você ainda não favoritou nenhuma raça. Toque na ★ de um cartão. 🐾' : 'Nenhuma raça encontrada com esses filtros.'}</div>`;
+  $('#breeds').innerHTML = lista.map(r => `<article class="card breed" data-k="${r.esp}|${r.id}">
+    <div class="photo" id="ph-${r.esp}${r.id}"><span aria-hidden="true">${dono(r.esp)}</span>
+      <button class="fav" aria-label="Favoritar ${esc(r.nome)}" data-fav="${r.esp}${r.id}">${db.favs.includes(r.esp + r.id) ? '★' : '☆'}</button>
+      <span class="tag" data-p="${r.porte}">${r.porte}</span></div>
+    <div class="body"><h3>${esc(r.nome)}</h3><span class="sub">${esc(r.origem)} · ${esc(r.vida)}</span><span>${esc(r.temp)}</span></div></article>`).join('');
+  lista.forEach(r => carregarCapa(r.esp, r, $('#ph-' + r.esp + r.id)));
+}
+// cliques nos cartões: favoritar ou abrir detalhes
+$('#breeds').onclick = e => {
+  const f = e.target.closest('[data-fav]');
+  if (f) {
+    const k = f.dataset.fav;
+    db.favs = db.favs.includes(k) ? db.favs.filter(x => x !== k) : [...db.favs, k];
+    salvar(); f.textContent = db.favs.includes(k) ? '★' : '☆'; desenharPets();
+    if (enc.esp === 'fav') desenharRacas();
+    return;
+  }
+  const c = e.target.closest('.breed');
+  if (c) { const [esp, id] = c.dataset.k.split('|'); abrirRaca(esp, id); }
+};
+async function abrirRaca(esp, id) {
+  const r = RACAS[esp].find(x => x.id === id);
+  $('#dlgBody').innerHTML = `<div class="row" style="justify-content:space-between;align-items:center"><h2 style="font-size:1.9rem;color:var(--pri)">${dono(esp)} ${esc(r.nome)}</h2><button class="btn sm sec" onclick="dlg.close()">Fechar</button></div>
+    <p style="margin:0">${esc(r.desc)}</p>
+    <div class="facts"><div><b>Origem</b>${esc(r.origem)}</div><div><b>Porte</b>${r.porte}</div><div><b>Peso</b>${esc(r.peso)}</div><div><b>Vida média</b>${esc(r.vida)}</div></div>
+    <div><b>Temperamento:</b> ${esc(r.temp)}</div>
+    <div class="gal" id="gal"><div class="photo"><span class="spin"></span></div><div class="photo"><span class="spin"></span></div><div class="photo"><span class="spin"></span></div></div>
+    <p class="sub" style="margin:0">Cada animal tem sua própria personalidade: a raça é só uma referência.</p>`;
+  dlg.showModal();
+  try {
+    const urls = await buscarFotos(esp, r, 3);
+    $('#gal').innerHTML = urls.map(u => `<div class="photo"><img class="ok" src="${esc(u)}" alt="Foto de ${esc(r.nome)}" loading="lazy"></div>`).join('');
+  } catch (e) { $('#gal').innerHTML = '<div class="msg err" style="grid-column:1/-1;margin:0">Não foi possível carregar as fotos agora. Verifique a internet.</div>'; }
+}
+$('#fEsp').onclick = e => {
+  const b = e.target.closest('.pill'); if (!b) return;
+  enc.esp = b.dataset.v;
+  document.querySelectorAll('#fEsp .pill').forEach(x => x.setAttribute('aria-pressed', x === b));
+  desenharRacas();
+};
+$('#busca').oninput = desenharRacas; $('#fPorte').onchange = desenharRacas;
+$('#btnSorteio').onclick = () => { const t = todas(); const r = t[Math.floor(Math.random() * t.length)]; abrirRaca(r.esp, r.id); };
+dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+
+/* ===== NOVAS FUNÇÕES ===== */
+// Confete de emojis (animação ao acertar, completar a rotina etc.)
+function confete(n = 36) {
+  if (matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  const em = ['🐾', '💖', '✨', '🎉', '⭐'];
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('span'); s.className = 'cf'; s.textContent = em[i % 5];
+    s.style.cssText = `left:${Math.random() * 100}vw;--dx:${(Math.random() - .5) * 200}px;animation-delay:${Math.random() * .4}s;font-size:${14 + Math.random() * 18}px`;
+    document.body.appendChild(s); setTimeout(() => s.remove(), 2800);
+  }
+}
+// Patinhas subindo no fundo da página
+(() => {
+  const d = document.createElement('div'); d.className = 'bgp'; d.setAttribute('aria-hidden', 'true');
+  for (let i = 0; i < 12; i++) { const s = document.createElement('span'); s.textContent = i % 3 ? '🐾' : '🦴'; s.style.cssText = `left:${i * 8.5}%;font-size:${22 + (i * 7) % 26}px;--t:${18 + (i * 5) % 14}s;--dl:-${(i * 3) % 18}s`; d.appendChild(s); }
+  document.body.prepend(d);
+})();
+// Anima um número até o valor final
+function animar(el, ate) {
+  const t0 = performance.now();
+  (function f(t) { const k = Math.min(1, (t - t0) / 600); el.textContent = Math.round(ate * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); })(t0);
+}
+
+/* --- Rotina diária e peso (cartão do pet) --- */
+const ITENS = ['🦮 Passeio', '💧 Água', '🥣 Ração', '🎾 Brincar'];
+function spark(a) {   // mini gráfico de linha do peso
+  if (a.length < 2) return '';
+  const v = a.map(x => x.kg), mn = Math.min(...v), mx = Math.max(...v), w = 130, h = 34;
+  const pts = v.map((y, i) => `${(i / (v.length - 1) * w).toFixed(1)},${(h - 4 - (mx === mn ? .5 : (y - mn) / (mx - mn)) * (h - 8)).toFixed(1)}`).join(' ');
+  return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(--pri)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function extrasPet(p) {
+  const feitos = p.chk && p.chk.d === hoje() ? p.chk.i : [];   // a rotina zera a cada dia
+  const ult = p.peso && p.peso.length ? p.peso[p.peso.length - 1].kg : null;
+  return `<div class="chk">${ITENS.map((t, i) => `<button class="chkb ${feitos.includes(i) ? 'on' : ''}" data-chk="${p.id}|${i}" aria-pressed="${feitos.includes(i)}">${t}</button>`).join('')}</div>
+    <span class="sub">Rotina de hoje: ${feitos.length}/4${feitos.length === 4 ? ' 🎉 Dia completo!' : ''}</span>
+    <div class="peso">${spark(p.peso || [])}<span class="sub">${ult ? ult + ' kg' : 'sem peso registrado'}</span><button class="btn sm sec" onclick="registrarPeso('${p.id}')">⚖️ Peso</button></div>`;
+}
+$('#pets').addEventListener('click', e => {
+  const b = e.target.closest('[data-chk]'); if (!b) return;
+  const [id, i] = b.dataset.chk.split('|'), p = db.pets.find(x => x.id === id);
+  if (!p.chk || p.chk.d !== hoje()) p.chk = { d: hoje(), i: [] };
+  const k = +i, j = p.chk.i.indexOf(k); j < 0 ? p.chk.i.push(k) : p.chk.i.splice(j, 1);
+  salvar(); $('#pets').classList.add('still'); desenharPets();
+  if (p.chk.i.length === 4) confete();
+});
+window.registrarPeso = id => {
+  const kg = parseFloat((prompt('Peso atual em kg:') || '').replace(',', '.'));
+  if (!(kg > 0)) return;
+  const p = db.pets.find(x => x.id === id); p.peso = [...(p.peso || []), { d: hoje(), kg }].slice(-12);
+  salvar(); $('#pets').classList.add('still'); desenharPets();
+};
+
+/* --- Quiz "Que raça é essa?" (fotos vindas das APIs) --- */
+const quiz = { n: 0, pts: 0, trava: true, certa: null };
+const embaralhar = a => [...a].sort(() => Math.random() - .5);
+$('#qBest').textContent = db.best ? '🏆 Recorde: ' + db.best + '/5' : '';
+async function novaRodada() {
+  if (quiz.n >= 5) return fimQuiz();
+  quiz.trava = true; $('#qOps').innerHTML = '';
+  $('#qFoto').innerHTML = '<span class="spin"></span>';
+  const esp = Math.random() < .5 ? 'cao' : 'gato', pool = RACAS[esp].filter(r => r.img);
+  const certa = pool[Math.floor(Math.random() * pool.length)];
+  const ops = embaralhar([certa, ...embaralhar(pool.filter(r => r !== certa)).slice(0, 3)]);
+  try {
+    const [u] = await buscarFotos(esp, certa, 1);   // foto real da raça correta
+    $('#qFoto').innerHTML = `<img class="ok" src="${esc(u)}" alt="Foto de um pet misterioso">`;
+  } catch (e) {
+    $('#qFoto').innerHTML = '<div class="msg err" style="margin:0">Não deu para carregar a foto. <button class="btn sm" id="qRetry">Tentar de novo</button></div>';
+    $('#qRetry').onclick = novaRodada; return;
+  }
+  quiz.certa = certa.id;
+  $('#qInfo').textContent = `Rodada ${quiz.n + 1} de 5 · ⭐ ${quiz.pts} ponto(s)`;
+  $('#qOps').innerHTML = ops.map(r => `<button class="pill" data-id="${r.id}">${esc(r.nome)}</button>`).join('');
+  quiz.trava = false;
+}
+$('#qOps').onclick = e => {
+  const b = e.target.closest('.pill'); if (!b || quiz.trava) return;
+  quiz.trava = true;
+  if (b.dataset.id === quiz.certa) { b.classList.add('certo'); quiz.pts++; confete(18); }
+  else { b.classList.add('errado'); const c = $(`#qOps [data-id="${quiz.certa}"]`); if (c) c.classList.add('certo'); }
+  quiz.n++; setTimeout(novaRodada, 1500);
+};
+function fimQuiz() {
+  const rec = quiz.pts > (db.best || 0); if (rec) { db.best = quiz.pts; salvar(); }
+  const m = ['Vamos estudar a enciclopédia! 📖', 'Dá para melhorar! 🐾', 'Nada mal! 🐶', 'Muito bom! 🐱', 'Quase perfeito! 🎉', 'Você é expert em pets! 🏆'][quiz.pts];
+  $('#qFoto').innerHTML = `<div style="text-align:center"><div class="big">${quiz.pts}/5</div><b>${m}</b></div>`;
+  $('#qInfo').textContent = rec && quiz.pts ? '🏆 Novo recorde!' : 'Fim de jogo.';
+  $('#qBest').textContent = db.best ? '🏆 Recorde: ' + db.best + '/5' : '';
+  $('#qOps').innerHTML = ''; $('#qStart').textContent = 'Jogar de novo'; $('#qStart').hidden = false;
+  if (quiz.pts >= 4) confete(60);
+}
+$('#qStart').onclick = () => { quiz.n = 0; quiz.pts = 0; $('#qStart').hidden = true; novaRodada(); };
+
+/* --- Idade humana do pet --- */
+function calcIdade() {
+  const a = +$('#iAnos').value || 0, gato = $('#iEsp').value === 'gato', k = gato ? 4 : +$('#iPorte').value;
+  const h = a <= 0 ? 0 : a < 1 ? a * 15 : a < 2 ? 15 + (a - 1) * 9 : 24 + (a - 2) * k;   // 1º ano = 15, 2º = +9, depois +k por ano
+  animar($('#iRes'), h);
+}
+['iEsp', 'iPorte', 'iAnos'].forEach(id => $('#' + id).oninput = calcIdade);
+$('#iEsp').onchange = () => { $('#iPorte').disabled = $('#iEsp').value === 'gato'; calcIdade(); };
+
+/* --- Gerador de nomes --- */
+const NOMES = {
+  fofo: ['Mel', 'Nina', 'Bolinha', 'Algodão', 'Pipoca', 'Docinho', 'Luna', 'Fofura', 'Biscoito', 'Cacau'],
+  forte: ['Thor', 'Zeus', 'Rex', 'Hulk', 'Máximo', 'Apolo', 'Duque', 'Titan', 'Ragnar', 'Spike'],
+  comida: ['Brigadeiro', 'Pudim', 'Coxinha', 'Nutella', 'Churros', 'Paçoca', 'Bacon', 'Sushi', 'Café', 'Pão de Queijo'],
+  mito: ['Atena', 'Loki', 'Hércules', 'Freya', 'Ártemis', 'Odin', 'Hera', 'Perseu', 'Íris', 'Anúbis']
+};
+$('#nBtn').onclick = () => {
+  const l = embaralhar(NOMES[$('#nTema').value]).slice(0, 4);
+  $('#nRes').innerHTML = l.map((n, i) => `<span class="nome" style="animation-delay:${i * .08}s">${esc(n)}</span>`).join('');
+};
+
+/* --- Dica do dia --- */
+const DICAS = [
+  'Água fresca e limpa deve estar sempre à disposição do seu pet.',
+  'Cães precisam passear todos os dias, mesmo os pequenos.',
+  'Chocolate, uva, cebola e alho podem ser perigosos para cães e gatos.',
+  'Gatos adoram lugares altos: prateleiras e nichos deixam o pet mais feliz.',
+  'Vacinas e vermífugo em dia protegem seu pet e a sua família.',
+  'Escovar os pelos com frequência reduz bolas de pelo e deixa a pelagem linda.',
+  'Mudanças de ração devem ser feitas aos poucos, em cerca de uma semana.',
+  'Brinquedos e arranhadores ajudam a gastar energia e evitam estragos na casa.',
+  'Dias muito quentes: evite o asfalto quente nas patinhas e passeios ao meio-dia.',
+  'Castração e check-up no veterinário ajudam o pet a viver mais e melhor.',
+  'Adote! Muitos animais sem raça definida esperam por um lar.'
+];
+let dIdx = Math.floor(Math.random() * DICAS.length);
+function novaDica(anim) { $('#dica').textContent = '💡 ' + DICAS[dIdx]; if (anim) { $('#dica').classList.remove('flip'); void $('#dica').offsetWidth; $('#dica').classList.add('flip'); } }
+$('#dBtn').onclick = () => { dIdx = (dIdx + 1) % DICAS.length; novaDica(true); };
+novaDica(); calcIdade();
+
+/* --- Raça do dia (muda todo dia) e botão de topo --- */
+(() => {
+  const t = todas(), r = t[Math.floor(Date.now() / 864e5) % t.length];
+  $('#pddNome').textContent = dono(r.esp) + ' ' + r.nome; $('#pddDesc').textContent = r.desc;
+  $('#pddBtn').onclick = () => abrirRaca(r.esp, r.id);
+  carregarCapa(r.esp, r, $('#pddFoto'));   // foto vinda da API
+})();
+addEventListener('scroll', () => $('#topo').classList.toggle('on', scrollY > 400));
+$('#topo').onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
+
+/* ===== Início ===== */
+$('#eData').value = hoje();
+desenharPets(); atualizarCal();
+</script>
+</body>
+</html>
